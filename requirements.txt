@@ -1,0 +1,10 @@
+aiofiles==23.2.1
+certifi==2024.8.30
+openai==0.28.0
+pydantic==1.10.18
+requests==2.32.3
+shazamio==0.6.0
+spotipy==2.24.0
+Telethon==1.36.0
+tiktoken==0.7.0
+urllib3==2.2.2
