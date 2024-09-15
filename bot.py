@@ -14,18 +14,20 @@ import aiohttp
 import asyncio
 from pydub import AudioSegment
 from mutagen.mp4 import MP4, MP4Cover
+from shazamio import Shazam
 
 
 API_ID = '...'
 API_HASH = '...'
-SESSION_NAME = '...'
-
+SESSION_NAME = 'userbot'
 
 openai.api_key = '...'
 
-sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id='',
-                                                           client_secret=''))
 
+sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id='...',
+                                                           client_secret='...'))
+
+gpt_model = "gpt-4o-mini-2024-07-18"
 client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
 
@@ -35,7 +37,25 @@ async def send_long_message(client, chat_id, message):
         part = message[i:i+MAX_MESSAGE_LENGTH]
         await client.send_message(chat_id, part)
 
-# это как будто не трогать, и так норм работает
+
+
+async def search_song_on_shazam(term):
+    shazam = Shazam()
+    result = await shazam.search_track(query=term, limit=5)
+    if result:
+        hits = result.get('tracks', {}).get('hits', [])
+        return [{
+            'title': hit['heading']['title'],
+            'artist': hit['heading']['subtitle'],
+            'image': hit['images']['default'],
+            'url': hit['share']['href'],
+            'apple_music_url': hit['stores'].get('apple', {}).get('actions', [{}])[0].get('uri')
+        } for hit in hits]
+    else:
+        return "Ошибка при поиске песни"
+
+
+
 def get_spotify_track_url(song_title, artist_name=None):
     query = song_title
     if artist_name:
@@ -53,20 +73,22 @@ def get_spotify_track_url(song_title, artist_name=None):
         return None
 
 
-# разобраться в том хламе что он возвращает и мб перейти на другой апи который распознает музыку из файла
-def search_song_on_shazam(term):
-    url = "https://shazam.p.rapidapi.com/search"
-    querystring = {"term": term, "locale": "en-US", "offset": "0", "limit": "5"}
-    headers = {
-        "x-rapidapi-key": "...",
-        "x-rapidapi-host": "shazam.p.rapidapi.com",
-    }
+async def get_links_from_songlink(song_url):
+    api_url = f"https://api.song.link/v1-alpha.1/links?url={song_url}"
 
-    response = requests.get(url, headers=headers, params=querystring)
-    if response.status_code == 200:
-        return response.json().get('tracks', {}).get('hits', [])
-    else:
-        return f"Ошибка при поиске песни: {response.status_code}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(api_url) as response:
+            if response.status == 200:
+                data = await response.json()
+                print(data) # что возвращает сонглинк
+                yandex_link = data.get('linksByPlatform', {}).get('yandex', {}).get('url')
+                songlink_url = data.get('pageUrl')
+
+                return yandex_link, songlink_url
+            else:
+                text = await response.text()
+                print(f"Ответ сервера: {text}")
+                return None, None
 
 
 def create_collage(images, output_path):
@@ -114,101 +136,15 @@ def create_collage(images, output_path):
 
     collage.save(output_path)
 
-# тут надо переделать потому что очень тупо а вообще найти апишку для яндкс музыки
-async def get_yandex_music_link(spotify_url):
-    ssl_context = ssl.create_default_context(cafile=certifi.where())
-    api_url = f"https://api.song.link/v1-alpha.1/links?url={spotify_url}"
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(api_url, ssl=ssl_context) as response:
-            if response.status == 200:
-                data = await response.json()
-                yandex_link = data.get('linksByPlatform', {}).get('yandex', {}).get('url')
-                return yandex_link
-            else:
-                text = await response.text()
-                print(f"Ответ сервера: {text}")
-                return None
-
-'''
-хотелось бы добавить скачку но потом и более качественно
-def download_song(spotify_url):
-    url = "https://spotify-downloader9.p.rapidapi.com/downloadSong"
-    querystring = {"songId": spotify_url}
-
-    headers = {
-        "x-rapidapi-key": "...",
-        "x-rapidapi-host": "spotify-downloader9.p.rapidapi.com"
-    }
-    
-    response = requests.get(url, headers=headers, params=querystring)
-
-    if response.status_code == 200:
-        data = response.json()
-        if data.get('success'):
-            download_link = data['data']['downloadLink']
-            cover_url = data['data']['cover']
-            return download_link, cover_url
-        else:
-            return None, None
-    else:
-        return None, None
-'''
-
-'''
-def convert_mp3_to_m4a(mp3_file, m4a_file):
-    audio = AudioSegment.from_mp3(mp3_file)
-    audio.export(m4a_file, format="mp4")
-
-def add_cover_to_m4a(m4a_file, cover_url):
-    cover_data = requests.get(cover_url).content
-    audio = MP4(m4a_file)
-    audio['covr'] = [MP4Cover(cover_data, imageformat=MP4Cover.FORMAT_JPEG)]
-    audio.save()
-'''
-
-'''
-@client.on(events.NewMessage(pattern=r'\?download (.+)'))
-async def download_handler(event):
-    spotify_url = event.pattern_match.group(1)
-
-    download_link, cover_url = download_song(spotify_url)
-    if download_link:
-        file_response = requests.get(download_link)
-
-        if file_response.status_code == 200:
-            mp3_file = 'track.mp3'
-            m4a_file = 'track.m4a'
 
 
-            with open(mp3_file, 'wb') as f:
-                f.write(file_response.content)
-
-            convert_mp3_to_m4a(mp3_file, m4a_file)
-
-            if cover_url:
-                add_cover_to_m4a(m4a_file, cover_url)
-
-
-            await client.send_file(event.chat_id, m4a_file, caption="Вот ваш трек в формате M4A с обложкой!")
-
-            os.remove(mp3_file)
-            os.remove(m4a_file)
-        else:
-            await event.reply("Ошибка при загрузке файла.")
-    else:
-        await event.reply("Не удалось получить ссылку на загрузку.")
-'''
-
-
-# тут по хорошему бы добавить опцию вывода цены
 @client.on(events.NewMessage(pattern=r'\?ask (.+)'))
 async def handler(event):
     question = event.pattern_match.group(1)
     await event.edit(f"Вопрос: {question}\nОбрабатывается...")
 
     response = openai.ChatCompletion.create(
-        model="gpt-4o-mini-2024-07-18",
+        model=gpt_model,
         messages=[
             {"role": "system", "content": "Ты помощник, отвечающий на вопросы."},
             {"role": "user", "content": question}
@@ -222,7 +158,6 @@ async def handler(event):
         await send_long_message(client, event.chat_id, f"Вопрос: {question}\nОтвет: {answer}")
 
 
-# тут по хорошему тоже пересмотреть весь алгоритм, уверен можно упростить
 @client.on(events.NewMessage(pattern=r'\?song(?: (.+))?'))
 async def song_search_handler(event):
     if event.is_reply:
@@ -236,41 +171,40 @@ async def song_search_handler(event):
 
     await event.edit(f"Ищу песню: {song_query}\nОбрабатывается...")
 
-    songs = search_song_on_shazam(song_query)
+    songs = await search_song_on_shazam(song_query)
     if songs:
-        images = [song['track']['share']['image'] for song in songs]
+        images = [song['image'] for song in songs]
         collage_path = 'collage.jpg'
         create_collage(images, collage_path)
 
         song_list = ""
         for i, song in enumerate(songs):
-            track_title = song['track']['title']
-            track_artist = song['track']['subtitle']
+            track_title = song['title']
+            track_artist = song['artist']
             spotify_link = get_spotify_track_url(track_title, track_artist)
 
             if spotify_link:
-                yandex_link = await get_yandex_music_link(spotify_link)
+                yandex_link, songlink_url = await get_links_from_songlink(spotify_link)
                 if yandex_link:
                     song_list += f"{i + 1}. <b>{track_title}</b> - <b>{track_artist}</b>:\n" \
                                  f"<b><a href='{spotify_link}'>Spotify</a></b> | " \
                                  f"<b><a href='{yandex_link}'>Yandex</a></b> | " \
-                                 f"<b><a href='{yandex_link}'>Other</a></b>\n"
-
+                                 f"<b><a href='{songlink_url}'>Other</a></b>\n"
                 else:
                     song_list += f"{i + 1}. <b>{track_title}</b> - <b>{track_artist}</b>:\n" \
                                  f"<b><a href='{spotify_link}'>Spotify</a></b> | " \
-                                 "Yandex: ссылка не найдена | " \
-                                 f"<b><a href='{spotify_link}'>Other</a></b>\n"
+                                 f"<b><a href='{songlink_url}'>Other</a></b>\n"
             else:
                 song_list += f"{i + 1}. <b>{track_title}</b> - <b>{track_artist}</b>:\n" \
                              "Ссылки не найдены\n"
+
         await event.edit(f"Ищу песню: {song_query}")
         await client.send_file(event.chat_id, collage_path, caption=f"Найденные песни:\n{song_list}", parse_mode='html')
     else:
         await event.edit(f"Ищу песню: {song_query}")
         await event.reply("Песни не найдены.")
 
-''' найти бы бесплатный хороший переводчик без ограничений...
+
 def translate_text(text):
     try:
         lang = detect(text)
@@ -281,7 +215,7 @@ def translate_text(text):
             prompt = f"Переведи на русский язык: {text}"
 
         response = openai.ChatCompletion.create(
-            model="gpt-4o-mini-2024-07-18",
+            model=gpt_model,
             messages=[
                 {"role": "system", "content": "Ты профессиональный переводчик."},
                 {"role": "user", "content": prompt}
@@ -309,10 +243,9 @@ async def translate_handler(event):
         await event.edit(f"Оригинал: {original_text}\nПеревод: {translated_text}")
 
     else:
-        await event.edit("Пожалуйста, ответьте на сообщение или введите текст для перевода после комманды ?tr.")
+        await event.edit("Пожалуйста, ответьте на сообщение или введите текст для перевода.")
         return
 
 
 client.start()
 client.run_until_disconnected()
-#подробные коментарии будут позже
