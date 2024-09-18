@@ -34,7 +34,7 @@
    python bot.py
 
 
-**[Shazamio](https://github.com/dnet/aioshazam](https://github.com/shazamio/ShazamIO)**
+**[Shazamio](https://github.com/shazamio/ShazamIO)**
 
-**[Songlink](https://github.com/dnet/aioshazam](https://linktree.notion.site/API-d0ebe08a5e304a55928405eb682f6741)**
+**[Songlink](https://linktree.notion.site/API-d0ebe08a5e304a55928405eb682f6741)**
 
