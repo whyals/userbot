@@ -91,51 +91,46 @@ async def get_links_from_songlink(song_url):
                 return None, None
 
 
-def create_collage(images, output_path):
-    if not images:
-        return
+def create_collage(images, titles_and_artists, output_path):
+    if not images or not titles_and_artists:
+        raise ValueError("Нет изображений или названий.")
 
-    num_images = len(images)
-    image_objects = [Image.open(BytesIO(requests.get(url).content)) for url in images]
+    background_color = (18, 18, 18)
+    cover_width = 120
+    cover_height = 120
+    spacing = 20
+    collage_width = cover_width + 2 * spacing + 400
+    collage_height = len(images) * (cover_height + spacing) + spacing
 
-    if num_images == 1:
-        collage = image_objects[0]
-    elif num_images == 2:
-        width, height = image_objects[0].size
-        collage = Image.new('RGB', (width * 2, height))
-        collage.paste(image_objects[0], (0, 0))
-        collage.paste(image_objects[1], (width, 0))
-    elif num_images == 3:
-        width, height = image_objects[0].size
-        collage = Image.new('RGB', (width * 3, height))
-        collage.paste(image_objects[0], (0, 0))
-        collage.paste(image_objects[1], (width, 0))
-        collage.paste(image_objects[2], (width * 2, 0))
-    elif num_images == 4:
-        width, height = image_objects[0].size
-        collage = Image.new('RGB', (width * 2, height * 2))
-        for i, img in enumerate(image_objects):
-            x = (i % 2) * width
-            y = (i // 2) * height
-            collage.paste(img, (x, y))
-    elif num_images == 5:
-        width, height = image_objects[0].size
-        small_width, small_height = int(width * 0.67), int(height * 0.67)
+    collage = Image.new('RGB', (collage_width, collage_height), background_color)
+    draw = ImageDraw.Draw(collage)
 
-        collage_width = width * 2
-        collage_height = int(height * 1.67)
+    cover_positions = [(spacing, spacing + i * (cover_height + spacing)) for i in range(len(images))]
+    text_x_position = cover_width + 2 * spacing
 
-        collage = Image.new('RGB', (collage_width, collage_height))
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/SF-Pro-Display-Regular.otf", 24)
+    except IOError:
+        font = ImageFont.load_default()
 
-        collage.paste(image_objects[0], (0, 0))
-        collage.paste(image_objects[1], (width, 0))
+    for i, (img_url, (title, artist)) in enumerate(zip(images, titles_and_artists)):
 
-        collage.paste(image_objects[2].resize((small_width, small_height)), (0, height))
-        collage.paste(image_objects[3].resize((small_width, small_height)), (small_width, height))
-        collage.paste(image_objects[4].resize((small_width, small_height)), (2 * small_width, height))
+        img = Image.open(BytesIO(requests.get(img_url).content))
+        img = img.resize((cover_width, cover_height), Image.Resampling.LANCZOS)
+        img = img.convert("RGBA")
+
+        mask = Image.new('L', img.size, 0)
+        draw_mask = ImageDraw.Draw(mask)
+        draw_mask.rounded_rectangle([(0, 0), img.size], radius=20, fill=255)
+        img.putalpha(mask)
+
+        collage.paste(img, cover_positions[i], img)
+
+        text_position = (text_x_position, cover_positions[i][1])
+        text = f"{title}\n{artist}"
+        draw.text(text_position, text, fill="white", font=font)
 
     collage.save(output_path)
-
 
 
 @client.on(events.NewMessage(pattern=r'\?ask (.+)'))
