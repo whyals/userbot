@@ -57,7 +57,7 @@
 
 **[Songlink API](https://linktree.notion.site/API-d0ebe08a5e304a55928405eb682f6741)**
 
-**[Yandex Music API](https://yandex-music.readthedocs.io/en/main/index.html)** з
+**[Yandex Music API](https://yandex-music.readthedocs.io/en/main/index.html)** 
 
 **[Translate API](https://github.com/nidhaloff/deep-translator)** 
 
