@@ -9,7 +9,7 @@ client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
 client.start()
 
-client.add_event_handler(song_search_handler, events.NewMessage(pattern=r'\?song(?: (.+))?'))
+client.add_event_handler(lambda event: song_search_handler(client, event), events.NewMessage(pattern=r'\?song(?: (.+))?'))
 client.add_event_handler(ask_question_handler, events.NewMessage(pattern=r'\?ask (.+)'))
 client.add_event_handler(translate_handler, events.NewMessage(pattern=r'\?tr(?: (.+))?'))
 client.add_event_handler(timer_handler, events.NewMessage(pattern=r'\?timer (\d+)'))
