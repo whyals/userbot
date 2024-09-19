@@ -47,7 +47,7 @@
 
 **[Spotify Token](https://developer.spotify.com/dashboard/152cff3c42a44766bbe1fdf5a3185cdc/settings)** получение id и токена для spotify
 
-**[Yandex Token](https://yandex-music.readthedocs.io/en/main/token.html)** получение токена для Yandec Music
+**[Yandex Token](https://yandex-music.readthedocs.io/en/main/token.html)** получение токена для Yandex Music
 
 
 
