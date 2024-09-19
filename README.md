@@ -8,8 +8,10 @@
 ## Функциональность
 
 - **Ассистент GPT**: Быстрый поиск информации с помощью chatGPT от openai
-- **Поиск песен по названию**: Бот ищет песни по их названию или исполнителю и присылает ссылки на spotify, yandex и songlink
-- **СЕКРЕТНО**: секретно
+- **Поиск песен**: Бот ищет песни по их названию или исполнителю и присылает ссылки на spotify, yandex и songlink
+- **Преревод текста**: Бот автоматически определяет текст и перевод на русский/анлийский по необхоимости
+- **Таймер**: утсановка таймера на n секунд
+- **СЕКРЕТНО**: секрнтно
 
 
 
@@ -37,8 +39,27 @@
    ```bash
    python bot.py
 
+## Полезные ссылки
 
-**[Shazamio](https://github.com/shazamio/ShazamIO)**
+**[GPT models](https://platform.openai.com/docs/models/gpt-4o)** здесь вы найдете все варианты моделей openai и их цены
 
-**[Songlink](https://linktree.notion.site/API-d0ebe08a5e304a55928405eb682f6741)**
+**[Telegram ID + Hash](https://my.telegram.org/apps)** cоздайте свое приложение и получите id и hash для использования бота
+
+**[Spotify Token](https://developer.spotify.com/dashboard/152cff3c42a44766bbe1fdf5a3185cdc/settings)** получение id и токена для spotify
+
+**[Yandex Token](https://yandex-music.readthedocs.io/en/main/token.html)** получение токена для Yandec Music
+
+
+
+**[Spotify API](https://spotipy.readthedocs.io/en/2.24.0)**
+
+**[Shazam API](https://github.com/shazamio/ShazamIO)**
+
+**[Songlink API](https://linktree.notion.site/API-d0ebe08a5e304a55928405eb682f6741)**
+
+**[Yandex Music API](https://yandex-music.readthedocs.io/en/main/index.html)** з
+
+**[Translate API](https://github.com/nidhaloff/deep-translator)** 
+
+
 
