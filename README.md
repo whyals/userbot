@@ -18,17 +18,21 @@
 
 1. Клонируйте репозиторий:
    ```bash
-   git clone https://github.com/username/repository.git
+   git clone https://github.com/whyals/userbot.git
    
 2. Перейдите в дирректорию:
    ```bash
    cd repository
 
 3. Установить библиотеки:
+   !!!перед установкой библиотеки shazamio необхожимо скачать rust
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
    ```bash
    pip install -r requirements.txt
 
-4. Запустите:
+5. Запустите:
    нажать кнопку запкуска или
    ```bash
    python bot.py
