@@ -39,7 +39,7 @@
    ```bash
    python bot.py
 
-## Полезные ссылки
+# Полезные ссылки
 
 **[GPT models](https://platform.openai.com/docs/models/gpt-4o)** здесь вы найдете все варианты моделей openai и их цены
 
