@@ -1,11 +1,10 @@
 from telethon import events
 
-from utils.shazam_search_func import search_song_on_shazam
-from utils.spotify_search_func import get_spotify_track_url
+from utils.main_spotify_search_func import get_spotify_track_info
 from utils.yandex_music_search_func import get_yandex_music_url
 from utils.songlink_search import get_songlink_url
-from utils.create_collage_func import create_collage
-
+from utils.create_card_func import create_song_card
+from utils.download_preview_song_func import download_preview
 
 @events.register(events.NewMessage(pattern=r'\?song(?: (.+))?'))
 async def song_search_handler(client, event):
@@ -18,43 +17,40 @@ async def song_search_handler(client, event):
         await event.reply("Пожалуйста, ответьте на сообщение или введите текст для поиска песни.")
         return
 
-    await event.edit(f"Ищу песню: {song_query}\nОбрабатывается...")
 
-    songs = await search_song_on_shazam(song_query)
-    if songs:
-        images = [song['image'] for song in songs]
-        titles_and_artists = [(song['title'], song['artist']) for song in songs]
-        collage_path = 'collage.jpg'
+    track_info = await get_spotify_track_info(song_query)
+    if track_info:
+        track_title = track_info['track_name']
+        track_artist = track_info['artist_name']
+        spotify_link = track_info['spotify_link']
+        yandex_link = await get_yandex_music_url(track_title)
+        songlink_url = await get_songlink_url(spotify_link or yandex_link)
 
-        create_collage(images, titles_and_artists, collage_path)
+        text = f"Похоже, что вы искали:\n" \
+               f"<b>{track_title}</b> - <b>{track_artist}</b>:\n"
 
-        song_list = ""
-        for i, song in enumerate(songs):
-            track_title = song['title']
-            track_artist = song['artist']
+        links = []
+        if spotify_link:
+            links.append(f"<b><a href='{spotify_link}'>Spotify</a></b>")
+        if yandex_link:
+            links.append(f"<b><a href='{yandex_link}'>Yandex</a></b>")
+        if songlink_url:
+            links.append(f"<b><a href='{songlink_url}'>Other</a></b>")
 
-            spotify_link = await get_spotify_track_url(track_title, track_artist)
-            yandex_link = await get_yandex_music_url(track_title)
-            songlink_url = await get_songlink_url(spotify_link or yandex_link)
+        text += " | ".join(links) + "\n"
 
-            if spotify_link and yandex_link and songlink_url:
-                song_list += f"{i + 1}. <b>{track_title}</b> - <b>{track_artist}</b>:\n" \
-                             f"<b><a href='{spotify_link}'>Spotify</a></b> | " \
-                             f"<b><a href='{yandex_link}'>Yandex</a></b> | " \
-                             f"<b><a href='{songlink_url}'>Other</a></b>\n"
-            elif spotify_link and songlink_url:
-                song_list += f"{i + 1}. <b>{track_title}</b> - <b>{track_artist}</b>:\n" \
-                             f"<b><a href='{spotify_link}'>Spotify</a></b> | " \
-                             f"<b><a href='{songlink_url}'>Other</a></b>\n"
-            elif yandex_link and songlink_url:
-                song_list += f"{i + 1}. <b>{track_title}</b> - <b>{track_artist}</b>:\n" \
-                             f"<b><a href='{yandex_link}'>Yandex</a></b> | " \
-                             f"<b><a href='{songlink_url}'>Other</a></b>\n"
-            else:
-                song_list += f"{i + 1}. <b>{track_title}</b> - <b>{track_artist}</b>:\n" \
-                             f"<b><a href='{songlink_url}'>Other</a></b>\n"
+        output_path = "card_1.jpg"
+        await create_song_card(track_info, output_path)
+        await client.send_file(event.chat_id, output_path, caption=text, parse_mode='html')
+        if track_info['preview_url'] != None:
+            audio_path = download_preview(track_info)
+            await client.send_file(event.chat_id, audio_path, caption='__________________________', parse_mode='html',
+                                   force_document=False,
+                                   performer=track_info['artist_name'],
+                                   title=track_info['track_name'])
+
+
         await event.edit(f"Ищу песню: {song_query}")
-        await client.send_file(event.chat_id, collage_path, caption=f"Найденные песни:\n{song_list}", parse_mode='html')
     else:
         await event.edit(f"Ищу песню: {song_query}")
         await event.reply("Песни не найдены.")
