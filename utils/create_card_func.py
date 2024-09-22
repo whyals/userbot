@@ -1,6 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 import requests
 from io import BytesIO
+import asyncio
+from utils.main_spotify_search_func import get_spotify_track_info
 
 
 async def create_song_card(track_info, output_path):
@@ -9,15 +11,14 @@ async def create_song_card(track_info, output_path):
     artist_name = track_info['artist_name']
     album_name = track_info['album_name']
     album_image_url = track_info['album_image_url']
-
-    track_name_pix = len(track_name) * 154
-    artist_album_pix = (len(artist_name) + 3 + len(album_name)) * 65
+    print(album_image_url)
 
     background_color = (18, 18, 18)
     cover_width = 640
     cover_height = 640
-    card_width = cover_width + 2 * 80 + max(3500, track_name_pix, artist_album_pix)
-    card_height = cover_height + 160
+    padding = 20
+    card_width = cover_width + 2 * padding
+    card_height = cover_height + 2 * padding + 140
 
     card = Image.new('RGB', (card_width, card_height), background_color)
     draw = ImageDraw.Draw(card)
@@ -31,13 +32,12 @@ async def create_song_card(track_info, output_path):
     draw_mask.rounded_rectangle([(0, 0), img.size], radius=80, fill=255)
     img.putalpha(mask)
 
-    card.paste(img, (80, 80), img)
+    card.paste(img, (padding, padding), img)
 
-    title_font = ImageFont.truetype("/Users/als/PycharmProjects/GPT_USERBOT/extra/SFProText-Heavy.ttf", 200)  # Шрифт для названия трека
-    info_font = ImageFont.truetype("/Users/als/PycharmProjects/GPT_USERBOT/extra/SFProText-Regular.ttf", 120)  # Шрифт для артиста и альбома
+    title_font = ImageFont.truetype("/Users/als/PycharmProjects/GPT_USERBOT/extra/SFProText-Heavy.ttf", 44)
+    info_font = ImageFont.truetype("/Users/als/PycharmProjects/GPT_USERBOT/extra/SFProText-Regular.ttf", 34)
 
-    text_x_position = cover_width + 200
-    title_position = (text_x_position, 140)
+    title_position = (padding, 50 + padding + cover_height)
     draw.text(title_position, track_name, fill="white", font=title_font)
 
 
@@ -45,8 +45,8 @@ async def create_song_card(track_info, output_path):
     text_draw = ImageDraw.Draw(text_img)
 
 
-    artist_album_position = (text_x_position, 430)
-    artist_album_text = f"{artist_name} • {album_name}"
+    artist_album_position = (padding, 2 * padding + cover_height + 80)
+    artist_album_text = f"{artist_name}"
     text_draw.text(artist_album_position, artist_album_text, fill=(255, 255, 255, 255), font=info_font)
 
 
@@ -56,3 +56,4 @@ async def create_song_card(track_info, output_path):
     card = Image.alpha_composite(card.convert('RGBA'), text_img)
 
     card.save(output_path, format="PNG")
+
