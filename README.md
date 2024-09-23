@@ -26,10 +26,6 @@
    cd userbot
 
 3. Установить библиотеки:
-   !!!перед установкой библиотеки shazamio необхожимо скачать rust
-   ```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
    ```bash
    pip install -r requirements.txt
 
