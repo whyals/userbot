@@ -13,5 +13,6 @@ client.add_event_handler(lambda event: song_search_handler(client, event), event
 client.add_event_handler(ask_question_handler, events.NewMessage(pattern=r'\?ask (.+)'))
 client.add_event_handler(translate_handler, events.NewMessage(pattern=r'\?tr(?: (.+))?'))
 client.add_event_handler(timer_handler, events.NewMessage(pattern=r'\?timer (\d+)'))
+client.add_event_handler(help_handler, events.NewMessage(pattern='^\\?help$'))
 
 client.run_until_disconnected()
