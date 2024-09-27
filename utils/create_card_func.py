@@ -1,59 +1,64 @@
-from PIL import Image, ImageDraw, ImageFont, ImageEnhance
-import requests
-from io import BytesIO
+import uuid
+import os
+import logging
 import asyncio
+
 from utils.main_spotify_search_func import get_spotify_track_info
+from utils.yandex_music_search_func import get_yandex_music_url
+from utils.songlink_search import get_songlink_url
+from utils.create_card_func import create_song_card
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-async def create_song_card(track_info, output_path):
-
-    track_name = track_info['track_name']
-    artist_name = track_info['artist_name']
-    album_name = track_info['album_name']
-    album_image_url = track_info['album_image_url']
-    print(album_image_url)
-
-    background_color = (18, 18, 18)
-    cover_width = 640
-    cover_height = 640
-    padding = 20
-    card_width = cover_width + 2 * padding
-    card_height = cover_height + 2 * padding + 140
-
-    card = Image.new('RGB', (card_width, card_height), background_color)
-    draw = ImageDraw.Draw(card)
-
-    img = Image.open(BytesIO(requests.get(album_image_url).content))
-    img = img.resize((cover_width, cover_height), Image.Resampling.LANCZOS)
-    img = img.convert("RGBA")
-
-    mask = Image.new('L', img.size, 0)
-    draw_mask = ImageDraw.Draw(mask)
-    draw_mask.rounded_rectangle([(0, 0), img.size], radius=80, fill=255)
-    img.putalpha(mask)
-
-    card.paste(img, (padding, padding), img)
-
-    title_font = ImageFont.truetype("/Users/als/PycharmProjects/GPT_USERBOT/extra/SFProText-Heavy.ttf", 44)
-    info_font = ImageFont.truetype("/Users/als/PycharmProjects/GPT_USERBOT/extra/SFProText-Regular.ttf", 34)
-
-    title_position = (padding, 50 + padding + cover_height)
-    draw.text(title_position, track_name, fill="white", font=title_font)
+async def song_search_handler(event, client):
+    if event.is_reply:
+        reply_message = await event.get_reply_message()
+        song_query = reply_message.text
+        logger.info(f"Ишу {song_query}")
+    elif event.pattern_match and event.pattern_match.group(1):
+        song_query = event.pattern_match.group(1)
+        logger.info(f"Ищу{song_query}")
+    else:
+        await event.reply("Пожалуйста, ответьте на сообщение или введите текст для поиска песни.")
+        return
 
 
-    text_img = Image.new('RGBA', card.size, (255, 255, 255, 0))
-    text_draw = ImageDraw.Draw(text_img)
+    await event.edit(f"Ищу песню: {song_query}")
 
+    track_info = await get_spotify_track_info(song_query)
+    if track_info:
+        track_title = track_info['track_name']
+        track_artist = track_info['artist_name']
+        spotify_link = track_info['spotify_url']
 
-    artist_album_position = (padding, 2 * padding + cover_height + 80)
-    artist_album_text = f"{artist_name}"
-    text_draw.text(artist_album_position, artist_album_text, fill=(255, 255, 255, 255), font=info_font)
+        yandex_link, songlink_url = await asyncio.gather(
+            get_yandex_music_url(track_title),
+            get_songlink_url(spotify_link)
+        )
 
+        text = f"Похоже, что вы искали:\n" \
+               f"<b>{track_title}</b> - <b>{track_artist}</b>:\n"
 
-    transparency = 150
-    text_img = ImageEnhance.Brightness(text_img).enhance(transparency / 255)
+        links = []
+        if spotify_link:
+            links.append(f"<b><a href='{spotify_link}'>Spotify</a></b>")
+        if yandex_link:
+            links.append(f"<b><a href='{yandex_link}'>Yandex</a></b>")
+        if songlink_url:
+            links.append(f"<b><a href='{songlink_url}'>Other</a></b>")
 
-    card = Image.alpha_composite(card.convert('RGBA'), text_img)
+        text += " | ".join(links) + "\n"
 
-    card.save(output_path, format="PNG")
+        output_path = f"card_{uuid.uuid4()}.jpg"
 
+        await create_song_card(track_info, output_path)
+        logger.info(f"Карточка песни {output_path} создана.")
+        await client.send_file(event.chat_id, output_path, caption=text, parse_mode='html')
+        logger.info(f"Файл {output_path} отправлен.")
+
+        os.remove(output_path)
+        logger.info(f"Временный файл {output_path} удалён.")
+    else:
+        await event.reply("Песни не найдены.")
