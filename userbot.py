@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from functools import partial
 from telethon import events, TelegramClient
 
 from userbot_handlers.search_song_handler import song_search_handler
@@ -28,40 +27,47 @@ async def main():
     logger.info("Userbot запущен.")
 
     client.add_event_handler(
-        partial(song_search_handler, client),
+        lambda event: song_search_handler(event, client),
         events.NewMessage(pattern=r'\?song(?: (.+))?')
     )
+
     client.add_event_handler(
-        partial(ask_question_handler, client),
+        lambda event: ask_question_handler(event, client),
         events.NewMessage(pattern=r'\?gpt (.+)')
     )
-    client.add_event_handler(translate_handler,
+
+    client.add_event_handler(
+        translate_handler,
         events.NewMessage(pattern=r'\?tr(?: (.+))?')
     )
+
     client.add_event_handler(
         timer_handler,
         events.NewMessage(pattern=r'\?timer (\d+)')
     )
+
     client.add_event_handler(
         help_handler,
         events.NewMessage(pattern=r'\?help')
     )
 
+    client.add_event_handler(
+        lambda event: ban_user(event, client),
+        events.NewMessage(pattern=r'^\.?ban')
+    )
 
     client.add_event_handler(
-        partial(ban_user, client),
-        events.NewMessage(pattern=r'^\.?ban$')
+        lambda event: unban_user(event, client),
+        events.NewMessage(pattern=r'^\.?unban')
     )
+
     client.add_event_handler(
-        partial(unban_user, client),
-        events.NewMessage(pattern=r'^\.?unban$')
-    )
-    client.add_event_handler(
-        partial(mute_user, client),
+        lambda event: mute_user(event, client),
         events.NewMessage(pattern=r'\?mute(?: (\d+))?')
     )
+
     client.add_event_handler(
-        partial(unmute_user, client),
+        lambda event: unmute_user(event, client),
         events.NewMessage(pattern=r'\?unmute')
     )
 
