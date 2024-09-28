@@ -1,5 +1,5 @@
 import openai
-from config import OPENAI_API_KEY, GPT_MODEL
+from userbot.config import OPENAI_API_KEY, GPT_MODEL
 
 openai.api_key = OPENAI_API_KEY
 
