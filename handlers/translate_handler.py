@@ -3,7 +3,6 @@ from telethon.sync import events
 from userbot.utils.translate_func import translate_text
 
 
-@events.register(events.NewMessage(pattern=r'\?tr(?: (.+))?'))
 async def translate_handler(event):
     if event.is_reply:
         reply_message = await event.get_reply_message()
