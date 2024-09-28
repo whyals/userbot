@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import logging
 
-from utils.fetch_images_func import fetch_image
+from userbot.utils.fetch_images_func import fetch_image
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
