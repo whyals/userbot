@@ -29,11 +29,11 @@
    ```bash
    pip install -r requirements.txt
 
-4. Пропишите все необхожимые ключи и параметры в config.py
+4. Запустите setup.py и введите в терминале все необхожимые данные
 
 5. Запустите:
    ```bash
-   python bot.py
+   python userbot.py
 
 # Полезные ссылки
 
