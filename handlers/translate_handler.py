@@ -1,6 +1,6 @@
 from telethon.sync import events
 
-from utils.translate_func import translate_text
+from userbot.utils.translate_func import translate_text
 
 
 @events.register(events.NewMessage(pattern=r'\?tr(?: (.+))?'))
