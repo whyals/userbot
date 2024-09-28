@@ -29,9 +29,11 @@
    ```bash
    pip install -r requirements.txt
 
-4. Запустите setup.py и введите в терминале все необхожимые данные
+4. Запустите setup.py и введите в терминале все необхожимые данные:
+   ```bash
+   python setup.py
 
-5. Запустите:
+5. Запустите userbot.py:
    ```bash
    python userbot.py
 
