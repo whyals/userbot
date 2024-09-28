@@ -1,6 +1,6 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from config import SP_CLIENT_ID, SP_CLIENT_SECRET
+from userbot.config import SP_CLIENT_ID, SP_CLIENT_SECRET
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SP_CLIENT_ID,
                                                            client_secret=SP_CLIENT_SECRET))
