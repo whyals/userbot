@@ -49,6 +49,8 @@
 
 
 
+# Используемые API
+
 **[Spotify API](https://spotipy.readthedocs.io/en/2.24.0)**
 
 **[Songlink API](https://linktree.notion.site/API-d0ebe08a5e304a55928405eb682f6741)**
