@@ -1,4 +1,4 @@
-from config import YM_TOKEN
+from userbot.config import YM_TOKEN
 from yandex_music import ClientAsync
 
 client = ClientAsync(YM_TOKEN)
