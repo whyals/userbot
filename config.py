@@ -1,5 +1,3 @@
-from telethon import TelegramClient
-
 API_ID = '...'
 API_HASH = '...'
 SESSION_NAME = 'session'
@@ -13,6 +11,3 @@ SP_CLIENT_ID = '...'
 SP_CLIENT_SECRET = '...'
 
 YM_TOKEN = '...'
-
-
-client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
