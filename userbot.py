@@ -2,11 +2,11 @@ import asyncio
 import logging
 from telethon import events, TelegramClient
 
-from userbot_handlers.search_song_handler import song_search_handler
-from userbot_handlers.ask_gpt_handler import ask_question_handler
-from userbot_handlers.timer_handler import timer_handler
-from userbot_handlers.translate_handler import translate_handler
-from userbot_handlers.help_handler import help_handler
+from userbot.handlers.search_song_handler import song_search_handler
+from userbot.handlers.ask_gpt_handler import ask_question_handler
+from userbot.handlers.timer_handler import timer_handler
+from userbot.handlers.translate_handler import translate_handler
+from userbot.handlers.help_handler import help_handler
 
 from userbot_handlers.user_moderation_handler import ban_user, unban_user, mute_user, unmute_user
 
