@@ -1,17 +1,16 @@
-from telethon import events
 import openai
 from telethon.errors import MessageTooLongError
 
-from utils.chatGPT_func import ask_question
-from config import OPENAI_API_KEY, client
-from utils.send_long_message_func import send_long_message
+from userbot.config import OPENAI_API_KEY
+
+from userbot.utils.chatGPT_func import ask_question
+from userbot.utils.send_long_message_func import send_long_message
 
 
 openai.api_key = OPENAI_API_KEY
 role = "Ты помощник, отвечающий на вопросы."
 
-@events.register(events.NewMessage(pattern=r'\?ask (.+)'))
-async def ask_question_handler(event):
+async def ask_question_handler(client, event):
     question = event.pattern_match.group(1)
     await event.edit(f"Вопрос: {question}\nОбрабатывается...")
 
