@@ -12,7 +12,7 @@ from userbot_handlers.user_moderation_handler import ban_user, unban_user, mute_
 
 from config import API_ID, API_HASH, SESSION_NAME
 
-client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
+client = TelegramClient(SESSION_NAME, API_ID, API_HASH, system_version="4.16.30-vxCUSTOM")
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
